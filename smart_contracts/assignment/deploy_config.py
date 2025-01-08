@@ -28,29 +28,26 @@ def deploy(
         on_schema_break=algokit_utils.OnSchemaBreak.AppendApp,
         on_update=algokit_utils.OnUpdate.AppendApp,
     )
-    counter = app_client.get_counter().return_value
-    logger.info(f"Counter value after deployment: {counter}")
+    
+    logger.info(f"Deployed Counter app with app_id: {app_client.app_id}")
 
-    response = app_client.increment()
-    logger.info(
-        f"Called increment on {app_spec.contract.name} ({app_client.app_id}), "
-        f"new counter value: {response.return_value}"
-    )
+    try:
+        result = app_client.opt_in_opt_in()
+        logger.info(f"Opted in deployer account [{deployer.address}] with result: {result.tx_id}")
+    except:
+        logger.info(f"Deployer account [{deployer.address}] already opted in")
+        
+    localState = app_client.get_local_state(deployer.address)
+    logger.info(f"Local state for deployer account [{deployer.address}]: {localState.counter}")
 
-    response = app_client.increment()
-    logger.info(
-        f"Called increment on {app_spec.contract.name} ({app_client.app_id}), "
-        f"new counter value: {response.return_value}"
-    )
+    result = app_client.increment()
+    logger.info(f"Incremented counter with result: {result.tx_id}")
 
-    response = app_client.increment()
-    logger.info(
-        f"Called increment on {app_spec.contract.name} ({app_client.app_id}), "
-        f"new counter value: {response.return_value}"
-    )
+    localState = app_client.get_local_state(deployer.address)
+    logger.info(f"Local state for deployer account [{deployer.address}]: {localState.counter}")
 
-    response = app_client.decrement()
-    logger.info(
-        f"Called decrement on {app_spec.contract.name} ({app_client.app_id}), "
-        f"new counter value: {response.return_value}"
-    )
+    result = app_client.decrement()
+    logger.info(f"Decremented counter with result: {result.tx_id}")
+
+    localState = app_client.get_local_state(deployer.address)
+    logger.info(f"Local state for deployer account [{deployer.address}]: {localState.counter}")

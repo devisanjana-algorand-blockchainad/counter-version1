@@ -1,22 +1,26 @@
-from algopy import ARC4Contract, String, UInt64
+from algopy import ARC4Contract, UInt64, LocalState, Txn, Global
 from algopy.arc4 import abimethod
 
-counter = UInt64
+
 class Assignment(ARC4Contract):
-
-    def __init__(self) -> None:
-        self.counter = UInt64(0)
-
-    @abimethod()
-    def get_counter(self) -> UInt64:
-        return self.counter
+    def __init__(self)->None:
+        self.counter = LocalState(UInt64)
 
     @abimethod()
-    def increment(self) -> UInt64:
-        self.counter += 1
-        return self.counter
+    def increment(self) -> None:
+        assert Txn.sender.is_opted_in(Global.current_application_id), "Must opt in to call"
+        self.counter[Txn.sender] += 1
+
+    @abimethod()
+    def decrement(self) -> None:
+        assert Txn.sender.is_opted_in(Global.current_application_id), "Must opt in to call"
+        self.counter[Txn.sender] -= 1
+
+    @abimethod()
+    def get(self) -> UInt64:
+        assert Txn.sender.is_opted_in(Global.current_application_id), "Must opt in to call"
+        return self.counter[Txn.sender]
     
-    @abimethod()
-    def decrement(self) -> UInt64:
-        self.counter -= 1
-        return self.counter
+    @abimethod(allow_actions=['OptIn'])
+    def opt_in(self) -> None:
+        self.counter[Txn.sender] = UInt64(0)
